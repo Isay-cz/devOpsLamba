@@ -1,0 +1,42 @@
+version: 0.2
+
+phases:
+  install:
+    runtime-versions:
+      python: 3.13
+    commands:
+      - echo "Instalando dependencias del sistema..."
+      - pip install --upgrade pip
+      - pip install aws-sam-cli
+      - pip install -r requirements.txt -t functions/
+
+  pre_build:
+    commands:
+      - echo "Iniciando fase pre-build..."
+      - sam --version
+      - echo "Listando estructura..."
+      - ls -R
+
+  build:
+    commands:
+      - echo "Validando variable ARTIFACT_BUCKET ($ARTIFACT_BUCKET)"
+      - |
+        if [ -z "$ARTIFACT_BUCKET" ]; then
+          echo "ERROR: La variable ARTIFACT_BUCKET no está definida."
+          exit 1
+        fi
+      - echo "Ejecutando SAM build..."
+      - sam build --use-container
+      - echo "Empaquetando plantilla SAM..."
+      - sam package --s3-bucket $ARTIFACT_BUCKET --output-template-file packaged.yaml
+
+  post_build:
+    commands:
+      - echo "Preparando artefactos para CodePipeline..."
+      - cp packaged.yaml template.yaml
+      - echo "Listo para deploy."
+
+artifacts:
+  type: zip
+  files:
+    - template.yaml
