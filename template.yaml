@@ -10,9 +10,7 @@ Globals:
     Environment:
       Variables:
         TABLE_NAME: !Ref TodoTable
-    Policies:
-      - DynamoDBCrudPolicy:
-          TableName: !Ref TodoTable
+    # El bloque 'Policies' se ha movido de aquí
 
 Resources:
   TodoTable:
@@ -29,6 +27,9 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: addTodo.lambda_handler
+      Policies: # <-- CORRECCIÓN: Permisos aplicados aquí
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
       Events:
         AddTodoApi:
           Type: Api
@@ -42,6 +43,9 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: getTodo.lambda_handler
+      Policies: # <-- CORRECCIÓN: Permisos aplicados aquí
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
       Events:
         GetAllTodosApi:
           Type: Api
@@ -61,6 +65,9 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: updateTodo.lambda_handler
+      Policies: # <-- CORRECCIÓN: Permisos aplicados aquí
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
       Events:
         UpdateTodoApi:
           Type: Api
@@ -74,6 +81,9 @@ Resources:
     Properties:
       CodeUri: functions/
       Handler: deleteTodo.lambda_handler
+      Policies: # <-- CORRECCIÓN: Permisos aplicados aquí
+        - DynamoDBCrudPolicy:
+            TableName: !Ref TodoTable
       Events:
         DeleteTodoApi:
           Type: Api
