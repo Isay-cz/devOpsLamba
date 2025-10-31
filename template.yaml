@@ -1,0 +1,102 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: "Microservicio ToDo serverless: API Gateway + Lambda + DynamoDB"
+
+Globals:
+  Function:
+    Runtime: python3.13
+    MemorySize: 128
+    Timeout: 5
+    Environment:
+      Variables:
+        TABLE_NAME: !Ref TodoTable
+    Policies:
+      - DynamoDBCrudPolicy:
+          TableName: !Ref TodoTable
+
+Resources:
+  TodoTable:
+    Type: AWS::Serverless::SimpleTable
+    Properties:
+      TableName: TodoItems
+      PrimaryKey:
+        Name: id
+        Type: String
+      BillingMode: PAY_PER_REQUEST
+
+  AddTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/
+      Handler: addTodo.lambda_handler
+      Events:
+        AddTodoApi:
+          Type: Api
+          Properties:
+            Path: /addTodo
+            Method: post
+            RestApiId: !Ref TodoApi
+
+  GetTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/
+      Handler: getTodo.lambda_handler
+      Events:
+        GetAllTodosApi:
+          Type: Api
+          Properties:
+            Path: /getTodo
+            Method: get
+            RestApiId: !Ref TodoApi
+        GetSingleTodoApi:
+          Type: Api
+          Properties:
+            Path: /getTodo/{id}
+            Method: get
+            RestApiId: !Ref TodoApi
+
+  UpdateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/
+      Handler: updateTodo.lambda_handler
+      Events:
+        UpdateTodoApi:
+          Type: Api
+          Properties:
+            Path: /updateTodo/{id}
+            Method: put
+            RestApiId: !Ref TodoApi
+
+  DeleteTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: functions/
+      Handler: deleteTodo.lambda_handler
+      Events:
+        DeleteTodoApi:
+          Type: Api
+          Properties:
+            Path: /deleteTodo/{id}
+            Method: delete
+            RestApiId: !Ref TodoApi
+
+  TodoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: TodoServiceApi
+      StageName: prod
+      EndpointConfiguration: REGIONAL
+      Cors:
+        AllowMethods: "'GET,POST,PUT,DELETE,OPTIONS'"
+        AllowHeaders: "'*'"
+        AllowOrigin: "'*'"
+
+Outputs:
+  ApiUrl:
+    Description: URL base del API Gateway
+    Value: !Sub "https://${TodoApi}.execute-api.${AWS::Region}.amazonaws.com/prod"
+  TableName:
+    Description: Nombre de la tabla DynamoDB
+    Value: !Ref TodoTable
