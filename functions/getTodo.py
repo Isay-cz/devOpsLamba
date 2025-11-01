@@ -31,7 +31,7 @@ def lambda_handler(event, context):
             items = resp.get("Items", [])
             return {
                 "statusCode": 200,
-                "body": json.dumps(items)
+                "body": "HOLAAAAAAAAAAA"
             }
 
     except ClientError as e:
